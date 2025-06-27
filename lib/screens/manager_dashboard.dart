@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/manager_data_service.dart';
+import '../widgets/manager_sales_page_widget.dart';
 import 'login_screen.dart';
 
 class ManagerDashboard extends StatefulWidget {
@@ -619,20 +620,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
   }
 
   Widget _buildPenjualanPage() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.shopping_cart, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Halaman Penjualan',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          Text('Fitur penjualan akan segera hadir'),
-        ],
-      ),
-    );
+    return const ManagerSalesPageWidget();
   }
 
   Widget _buildPembelianPage() {
