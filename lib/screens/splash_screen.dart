@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'home_page.dart';
+import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -12,51 +12,76 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<Offset> _slideAnimationTop; // Untuk teks atas
-  late Animation<Offset> _slideAnimationBottom; // Untuk teks bawah
-  late Animation<double> _fadeAnimation; // Untuk logo
+  late Animation<Offset> _slideAnimationTop;
+  late Animation<Offset> _slideAnimationBottom;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _progressAnimation;
 
   @override
   void initState() {
     super.initState();
 
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1800), // Durasi sedikit lebih panjang
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
-    // Animasi geser dari atas ke posisi tengah
+    // Animasi slide untuk teks atas
     _slideAnimationTop = Tween<Offset>(
-      begin: const Offset(0, -0.5), // Mulai dari atas
+      begin: const Offset(0, -0.8),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOutCubic, // Kurva yang mulus dan cepat
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
     ));
 
-    // Animasi geser dari bawah ke posisi tengah
+    // Animasi slide untuk teks bawah
     _slideAnimationBottom = Tween<Offset>(
-      begin: const Offset(0, 0.5), // Mulai dari bawah
+      begin: const Offset(0, 0.8),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeOutCubic,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
     ));
 
-    // Animasi fade in untuk logo
+    // Animasi fade untuk semua elemen
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeIn), // Muncul setelah slide dimulai
+        curve: const Interval(0.2, 0.8, curve: Curves.easeIn),
+      ),
+    );
+
+    // Animasi scale untuk logo (bounce effect)
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.3, 0.8, curve: Curves.elasticOut),
+      ),
+    );
+
+    // Animasi progress bar
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeInOut),
       ),
     );
 
     _controller.forward();
 
-    Timer(const Duration(seconds: 4), () { // Total durasi tetap 4 detik
+    // Navigasi ke HomePage setelah animasi selesai
+    Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomePage()),
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
         );
       }
     });
@@ -70,118 +95,168 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF00809D), // Teal/Biru Kehijauan Tua
-              Color(0xFFF3A26D), // Oranye Peach/Salmon
+              Color(0xFF1e3c72), // Deep Blue
+              Color(0xFF2a5298), // Royal Blue
             ],
-            stops: [0.1, 0.9],
+            stops: [0.0, 1.0],
           ),
         ),
-        child: Center(
+        child: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Teks "Usaha Distributor" dengan Slide dan Fade
+              // Spacer atas
+              SizedBox(height: screenHeight * 0.15),
+              
+              // Teks "Usaha Distributor"
               SlideTransition(
                 position: _slideAnimationTop,
                 child: FadeTransition(
-                  opacity: _fadeAnimation, // Menggunakan fade yang sama untuk kemunculan
-                  child: const Text(
+                  opacity: _fadeAnimation,
+                  child: Text(
                     'Usaha Distributor',
                     style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                      letterSpacing: 0.8,
-                      shadows: [
-                        Shadow(
-                          blurRadius: 5.0,
-                          color: Colors.black26,
-                          offset: Offset(2, 2),
+                      fontSize: screenWidth * 0.055,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white.withOpacity(0.9),
+                      letterSpacing: 1.2,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              
+              SizedBox(height: screenHeight * 0.08),
+
+              // Logo dengan animasi scale dan tanpa background
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: Container(
+                    width: screenWidth * 0.35,
+                    height: screenWidth * 0.35,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Logo "KS" dengan Fade (tanpa scale untuk tampilan lebih minimalis)
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF7601).withOpacity(0.8), // Oranye Cerah agak transparan
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'KS',
-                      style: TextStyle(
-                        fontSize: 56,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 3,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 5.0,
-                            color: Colors.black26,
-                            offset: Offset(2, 2),
-                          ),
-                        ],
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.contain,
+                        // Menghilangkan background putih dengan ColorBlendMode
+                        color: Colors.transparent,
+                        colorBlendMode: BlendMode.multiply,
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              
+              SizedBox(height: screenHeight * 0.08),
 
-              // Teks "KELUARGA SEHATI" dengan Slide dan Fade
+              // Teks "KELUARGA SEHATI"
               SlideTransition(
                 position: _slideAnimationBottom,
                 child: FadeTransition(
-                  opacity: _fadeAnimation, // Menggunakan fade yang sama untuk kemunculan
-                  child: const Text(
+                  opacity: _fadeAnimation,
+                  child: Text(
                     'KELUARGA SEHATI',
                     style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontSize: screenWidth * 0.065,
+                      fontWeight: FontWeight.w700,
                       color: Colors.white,
-                      letterSpacing: 4,
+                      letterSpacing: 2.5,
+                      height: 1.1,
                       shadows: [
                         Shadow(
-                          blurRadius: 5.0,
-                          color: Colors.black26,
-                          offset: Offset(2, 2),
+                          blurRadius: 8.0,
+                          color: Colors.black.withOpacity(0.3),
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: 180,
-                child: LinearProgressIndicator(
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                  backgroundColor: const Color(0xFFFCECDD).withOpacity(0.5),
+              
+              // Spacer tengah
+              const Spacer(),
+              
+              // Progress indicator dengan animasi
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: Column(
+                  children: [
+                    Text(
+                      'Loading...',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: screenWidth * 0.035,
+                        fontWeight: FontWeight.w300,
+                      ),
+                    ),
+                    SizedBox(height: screenHeight * 0.02),
+                    Container(
+                      width: screenWidth * 0.6,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: AnimatedBuilder(
+                        animation: _progressAnimation,
+                        builder: (context, child) {
+                          return FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: _progressAnimation.value,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFffecd2),
+                                    Color(0xFFfcb69f),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFfcb69f).withOpacity(0.5),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              
+              SizedBox(height: screenHeight * 0.08),
             ],
           ),
         ),
