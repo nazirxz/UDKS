@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/manager_data_service.dart';
 import '../widgets/manager_sales_page_widget.dart';
+import '../widgets/manager_purchase_page_widget.dart';
+import '../widgets/manager_return_page_widget.dart';
 import 'login_screen.dart';
 
 class ManagerDashboard extends StatefulWidget {
@@ -119,11 +121,11 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
       case 0:
         return _buildBerandaPage();
       case 1:
-        return _buildPenjualanPage();
+        return const ManagerSalesPageWidget();
       case 2:
-        return _buildPembelianPage();
+        return const ManagerPurchasePageWidget();
       case 3:
-        return _buildReturnPage();
+        return const ManagerReturnPageWidget();
       default:
         return _buildBerandaPage();
     }
@@ -614,44 +616,6 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPenjualanPage() {
-    return const ManagerSalesPageWidget();
-  }
-
-  Widget _buildPembelianPage() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.shopping_bag, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Halaman Pembelian',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          Text('Fitur pembelian akan segera hadir'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReturnPage() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.assignment_return, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Halaman Return',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          Text('Fitur return akan segera hadir'),
         ],
       ),
     );
