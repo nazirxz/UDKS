@@ -58,7 +58,7 @@ flutter:
       # - assets/fonts/
       # - assets/audio/
       # - assets/videos/
-      # - assets/data/
+      - assets/data/
       
       # Cara 3: Subfolder spesifik
       # - assets/images/icons/

@@ -1,6 +1,12 @@
+// lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
-import 'home_page.dart';
+import '../services/auth_service.dart';
+import '../models/user.dart';
+import 'admin_dashboard.dart';
+import 'sales_dashboard.dart';
+import 'pengecer_dashboard.dart';
+import 'manager_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -30,17 +36,62 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = true;
       });
 
-      // Simulasi proses login
-      await Future.delayed(const Duration(seconds: 2));
+      try {
+        // Authenticate user using AuthService
+        final user = await AuthService.authenticate(
+          _usernameController.text.trim(),
+          _passwordController.text.trim(),
+        );
 
-      setState(() {
-        _isLoading = false;
-      });
+        setState(() {
+          _isLoading = false;
+        });
 
-      // Navigate to HomePage
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
+        if (user != null) {
+          // Navigate based on user role
+          Widget destination;
+          switch (user.role) {
+            case 'admin':
+              destination = AdminDashboard(user: user);
+              break;
+            case 'sales':
+              destination = SalesDashboard(user: user);
+              break;
+            case 'pengecer':
+              destination = PengecerDashboard(user: user);
+              break;
+            case 'manager':
+              destination = ManagerDashboard(user: user);
+              break;
+            default:
+              // Fallback to admin dashboard
+              destination = AdminDashboard(user: user);
+          }
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => destination),
+          );
+        } else {
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Username atau password salah!'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Terjadi kesalahan: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -157,6 +208,39 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Demo Users Info
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  margin: const EdgeInsets.only(bottom: 20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.blue.shade200),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Demo Login:',
+                                        style: TextStyle(
+                                          fontSize: (maxWidth * 0.035).clamp(12.0, 14.0),
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue.shade700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        'admin/admin • sales/sales\npengecer/pengecer • manager/manager',
+                                        style: TextStyle(
+                                          fontSize: (maxWidth * 0.03).clamp(10.0, 12.0),
+                                          color: Colors.blue.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                
                                 // Username Field
                                 Text(
                                   'Username',
@@ -253,9 +337,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Password tidak boleh kosong';
-                                    }
-                                    if (value.length < 6) {
-                                      return 'Password minimal 6 karakter';
                                     }
                                     return null;
                                   },
