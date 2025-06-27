@@ -95,9 +95,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -114,150 +111,198 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
-              // Spacer atas
-              SizedBox(height: screenHeight * 0.15),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final screenHeight = constraints.maxHeight;
+              final screenWidth = constraints.maxWidth;
               
-              // Teks "Usaha Distributor"
-              SlideTransition(
-                position: _slideAnimationTop,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Text(
-                    'Usaha Distributor',
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.055,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white.withOpacity(0.9),
-                      letterSpacing: 1.2,
-                      height: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
+              return Column(
+                children: [
+                  // Flexible spacer atas
+                  Flexible(
+                    flex: 2,
+                    child: Container(),
                   ),
-                ),
-              ),
-              
-              SizedBox(height: screenHeight * 0.08),
-
-              // Logo dengan animasi scale dan tanpa background
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    width: screenWidth * 0.35,
-                    height: screenWidth * 0.35,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+                  
+                  // Teks "Usaha Distributor"
+                  SlideTransition(
+                    position: _slideAnimationTop,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'Usaha Distributor',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.055,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.white.withOpacity(0.9),
+                              letterSpacing: 1.2,
+                              height: 1.2,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                        fit: BoxFit.contain,
-                        // Menghilangkan background putih dengan ColorBlendMode
-                        color: Colors.transparent,
-                        colorBlendMode: BlendMode.multiply,
                       ),
                     ),
                   ),
-                ),
-              ),
-              
-              SizedBox(height: screenHeight * 0.08),
+                  
+                  // Flexible spacer
+                  Flexible(
+                    flex: 1,
+                    child: Container(),
+                  ),
 
-              // Teks "KELUARGA SEHATI"
-              SlideTransition(
-                position: _slideAnimationBottom,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Text(
-                    'KELUARGA SEHATI',
-                    style: TextStyle(
-                      fontSize: screenWidth * 0.065,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      letterSpacing: 2.5,
-                      height: 1.1,
-                      shadows: [
-                        Shadow(
-                          blurRadius: 8.0,
-                          color: Colors.black.withOpacity(0.3),
-                          offset: const Offset(0, 2),
+                  // Logo dengan animasi scale dan tanpa background
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxWidth: screenWidth * 0.4,
+                          maxHeight: screenHeight * 0.25,
                         ),
-                      ],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              
-              // Spacer tengah
-              const Spacer(),
-              
-              // Progress indicator dengan animasi
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: Column(
-                  children: [
-                    Text(
-                      'Loading...',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: screenWidth * 0.035,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.02),
-                    Container(
-                      width: screenWidth * 0.6,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: AnimatedBuilder(
-                        animation: _progressAnimation,
-                        builder: (context, child) {
-                          return FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: _progressAnimation.value,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFFffecd2),
-                                    Color(0xFFfcb69f),
-                                  ],
+                        child: AspectRatio(
+                          aspectRatio: 1.0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
                                 ),
-                                borderRadius: BorderRadius.circular(2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFFfcb69f).withOpacity(0.5),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image.asset(
+                                'assets/images/logo.png',
+                                fit: BoxFit.contain,
+                                color: Colors.transparent,
+                                colorBlendMode: BlendMode.multiply,
                               ),
                             ),
-                          );
-                        },
+                          ),
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              
-              SizedBox(height: screenHeight * 0.08),
-            ],
+                  ),
+                  
+                  // Flexible spacer
+                  Flexible(
+                    flex: 1,
+                    child: Container(),
+                  ),
+
+                  // Teks "KELUARGA SEHATI"
+                  SlideTransition(
+                    position: _slideAnimationBottom,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'KELUARGA SEHATI',
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.065,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 2.5,
+                              height: 1.1,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 8.0,
+                                  color: Colors.black.withOpacity(0.3),
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  // Flexible spacer yang mengisi sisa ruang
+                  Flexible(
+                    flex: 3,
+                    child: Container(),
+                  ),
+                  
+                  // Progress indicator dengan animasi
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                      child: Column(
+                        children: [
+                          FittedBox(
+                            child: Text(
+                              'Loading...',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: screenWidth * 0.035,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
+                          Container(
+                            width: double.infinity,
+                            height: 4,
+                            constraints: BoxConstraints(
+                              maxWidth: screenWidth * 0.6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            child: AnimatedBuilder(
+                              animation: _progressAnimation,
+                              builder: (context, child) {
+                                return FractionallySizedBox(
+                                  alignment: Alignment.centerLeft,
+                                  widthFactor: _progressAnimation.value,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFFffecd2),
+                                          Color(0xFFfcb69f),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(2),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFFfcb69f).withOpacity(0.5),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // Bottom spacer
+                  SizedBox(height: screenHeight * 0.05),
+                ],
+              );
+            },
           ),
         ),
       ),
