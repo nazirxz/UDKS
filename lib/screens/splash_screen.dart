@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'login_screen.dart';
+import '../services/storage_service.dart';
+import '../models/user.dart';
+import 'admin_dashboard.dart';
+import 'sales_dashboard.dart';
+import 'pengecer_dashboard.dart';
+import 'manager_dashboard.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -21,7 +27,11 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
+    _checkAutoLoginAndNavigate();
+  }
 
+  void _initializeAnimations() {
     _controller = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
@@ -70,21 +80,77 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
+  }
 
-    // Navigasi ke HomePage setelah animasi selesai
-    Timer(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            transitionDuration: const Duration(milliseconds: 500),
-          ),
-        );
+  Future<void> _checkAutoLoginAndNavigate() async {
+    // Wait for animation to complete
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (!mounted) return;
+
+    try {
+      // Check if user should be automatically logged in
+      final isLoggedIn = await StorageService.isLoggedIn();
+      final rememberMe = await StorageService.getRememberMe();
+      
+      if (isLoggedIn && rememberMe) {
+        final savedUser = await StorageService.getSavedUserData();
+        if (savedUser != null) {
+          // Auto login user
+          _navigateToUserDashboard(savedUser);
+          return;
+        }
       }
-    });
+      
+      // Navigate to login screen if no auto login
+      _navigateToLogin();
+    } catch (e) {
+      print('Error checking auto login: $e');
+      // Fallback to login screen
+      _navigateToLogin();
+    }
+  }
+
+  void _navigateToUserDashboard(User user) {
+    Widget destination;
+    switch (user.role) {
+      case 'admin':
+        destination = AdminDashboard(user: user);
+        break;
+      case 'sales':
+        destination = SalesDashboard(user: user);
+        break;
+      case 'pengecer':
+        destination = PengecerDashboard(user: user);
+        break;
+      case 'manager':
+        destination = ManagerDashboard(user: user);
+        break;
+      default:
+        destination = AdminDashboard(user: user);
+    }
+
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => destination,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
+  void _navigateToLogin() {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
   }
 
   @override
@@ -309,3 +375,4 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
+    

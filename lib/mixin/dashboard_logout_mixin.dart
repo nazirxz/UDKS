@@ -1,13 +1,13 @@
 // lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
-import 'register_screen.dart';
+import '../screens/register_screen.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 import '../models/user.dart';
-import 'admin_dashboard.dart';
-import 'sales_dashboard.dart';
-import 'pengecer_dashboard.dart';
-import 'manager_dashboard.dart';
+import '../screens/admin_dashboard.dart';
+import '../screens/sales_dashboard.dart';
+import '../screens/pengecer_dashboard.dart';
+import '../screens/manager_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);

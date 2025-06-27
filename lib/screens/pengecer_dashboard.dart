@@ -1,7 +1,7 @@
 // lib/screens/pengecer_dashboard.dart
 import 'package:flutter/material.dart';
 import '../models/user.dart';
-import 'login_screen.dart';
+import '../utils/dashboard_utils.dart';
 
 class PengecerDashboard extends StatelessWidget {
   final User user;
@@ -16,9 +16,11 @@ class PengecerDashboard extends StatelessWidget {
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
+          DashboardUtils.buildUserInfoBadge(user),
+          DashboardUtils.buildPopupMenu(
+            context, 
+            user, 
+            (value) => DashboardUtils.handleMenuSelection(context, value, user),
           ),
         ],
       ),
@@ -29,48 +31,7 @@ class PengecerDashboard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Welcome Card
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.orange,
-                          child: Text(
-                            user.name[0],
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Selamat Datang, ${user.name}!',
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'Role: ${user.role.toUpperCase()}',
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                              Text(
-                                user.email,
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            DashboardUtils.buildWelcomeCard(user, Colors.orange),
             
             const SizedBox(height: 20),
             
@@ -78,11 +39,11 @@ class PengecerDashboard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildStatCard('Order Pending', '5', Colors.red),
+                  child: DashboardUtils.buildStatCard('Order Pending', '5', Colors.red),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: _buildStatCard('Total Order Bulan Ini', '23', Colors.green),
+                  child: DashboardUtils.buildStatCard('Total Order Bulan Ini', '23', Colors.green),
                 ),
               ],
             ),
@@ -103,29 +64,33 @@ class PengecerDashboard extends StatelessWidget {
                 crossAxisSpacing: 15,
                 mainAxisSpacing: 15,
                 children: [
-                  _buildMenuCard(
+                  DashboardUtils.buildMenuCard(
+                    context,
                     icon: Icons.add_shopping_cart,
                     title: 'Buat Order',
                     color: Colors.orange,
-                    onTap: () => _showSnackBar(context, 'Fitur Buat Order'),
+                    onTap: () => DashboardUtils.showSnackBar(context, 'Fitur Buat Order'),
                   ),
-                  _buildMenuCard(
+                  DashboardUtils.buildMenuCard(
+                    context,
                     icon: Icons.list_alt,
                     title: 'Daftar Order',
                     color: Colors.blue,
-                    onTap: () => _showSnackBar(context, 'Fitur Daftar Order'),
+                    onTap: () => DashboardUtils.showSnackBar(context, 'Fitur Daftar Order'),
                   ),
-                  _buildMenuCard(
+                  DashboardUtils.buildMenuCard(
+                    context,
                     icon: Icons.inventory_2,
                     title: 'Katalog Produk',
                     color: Colors.green,
-                    onTap: () => _showSnackBar(context, 'Fitur Katalog Produk'),
+                    onTap: () => DashboardUtils.showSnackBar(context, 'Fitur Katalog Produk'),
                   ),
-                  _buildMenuCard(
+                  DashboardUtils.buildMenuCard(
+                    context,
                     icon: Icons.payment,
                     title: 'Pembayaran',
                     color: Colors.purple,
-                    onTap: () => _showSnackBar(context, 'Fitur Pembayaran'),
+                    onTap: () => DashboardUtils.showSnackBar(context, 'Fitur Pembayaran'),
                   ),
                 ],
               ),
@@ -133,76 +98,6 @@ class PengecerDashboard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, Color color) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuCard({
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      elevation: 4,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 40, color: color),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  void _logout(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
     );
   }
 }

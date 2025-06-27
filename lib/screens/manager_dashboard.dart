@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/manager_data_service.dart';
+import '../utils/dashboard_utils.dart';
 import '../widgets/manager_sales_page_widget.dart';
 import '../widgets/manager_purchase_page_widget.dart';
 import '../widgets/manager_return_page_widget.dart';
-import 'login_screen.dart';
 
 class ManagerDashboard extends StatefulWidget {
   final User user;
@@ -61,13 +61,15 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          DashboardUtils.buildUserInfoBadge(widget.user),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => _showSnackBar('Notifikasi'),
+            onPressed: () => DashboardUtils.showSnackBar(context, 'Notifikasi'),
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
+          DashboardUtils.buildPopupMenu(
+            context, 
+            widget.user, 
+            (value) => DashboardUtils.handleMenuSelection(context, value, widget.user),
           ),
         ],
       ),
@@ -468,7 +470,7 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => _showSnackBar('Lihat Semua Transaksi'),
+                  onPressed: () => DashboardUtils.showSnackBar(context, 'Lihat Semua Transaksi'),
                   child: const Text('Lihat Semua'),
                 ),
               ],
@@ -625,19 +627,6 @@ class _ManagerDashboardState extends State<ManagerDashboard> {
     return amount.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',
-    );
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  void _logout(BuildContext context) {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
     );
   }
 }
