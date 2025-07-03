@@ -511,12 +511,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           
+                          
                           SizedBox(height: maxHeight * 0.02),
                         ],
                       ),
                     ),
                   ),
                 ),
+
+                
               );
             },
           ),
