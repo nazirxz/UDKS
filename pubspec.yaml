@@ -31,16 +31,15 @@ dependencies:
   flutter:
     sdk: flutter
   shared_preferences: ^2.2.2
-  google_maps_flutter: ^2.5.0
-  geolocator: ^10.1.0
-  permission_handler: ^11.1.0
-  url_launcher: ^6.2.2
 
-
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
+
+  # Maps & Location - OpenStreetMap GRATIS
+  flutter_map: ^6.2.1          # OpenStreetMap - GRATIS
+  latlong2: ^0.9.1            # Koordinat - GRATIS (Updated to match flutter_map requirement)
+  geolocator: ^10.1.0         # GPS Location - GRATIS
+  permission_handler: ^11.1.0  # Permissions - GRATIS
+  url_launcher: ^6.2.2        # Link/Telepon - GRATIS
 
 dev_dependencies:
   flutter_test:

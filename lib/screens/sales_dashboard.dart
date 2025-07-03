@@ -1,8 +1,10 @@
 // lib/screens/sales_dashboard.dart
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/user.dart';
 import '../utils/dashboard_utils.dart';
 
@@ -16,11 +18,12 @@ class SalesDashboard extends StatefulWidget {
 }
 
 class _SalesDashboardState extends State<SalesDashboard> {
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
   Position? _currentPosition;
-  Set<Marker> _markers = {};
+  List<Marker> _markers = [];
   String _selectedFilter = 'Semua';
   bool _isLoading = true;
+  String _mapStyle = 'OpenStreetMap';
 
   // Data titik distribusi dengan koordinat real Jakarta
   final List<Map<String, dynamic>> _distributionPoints = [
@@ -33,7 +36,9 @@ class _SalesDashboardState extends State<SalesDashboard> {
       'lng': 106.8456,
       'color': Colors.green,
       'phone': '+62-21-1234567',
-      'contact': 'Budi Santoso'
+      'contact': 'Budi Santoso',
+      'lastVisit': '2 hari lalu',
+      'orderValue': 'Rp 15.500.000'
     },
     {
       'id': 'virtus_ventura',
@@ -44,7 +49,9 @@ class _SalesDashboardState extends State<SalesDashboard> {
       'lng': 106.8600,
       'color': Colors.green,
       'phone': '+62-21-2345678',
-      'contact': 'Siti Aisyah'
+      'contact': 'Siti Aisyah',
+      'lastVisit': '1 hari lalu',
+      'orderValue': 'Rp 22.300.000'
     },
     {
       'id': 'sks',
@@ -55,7 +62,9 @@ class _SalesDashboardState extends State<SalesDashboard> {
       'lng': 106.8500,
       'color': Colors.orange,
       'phone': '+62-21-3456789',
-      'contact': 'Ahmad Rahman'
+      'contact': 'Ahmad Rahman',
+      'lastVisit': '5 hari lalu',
+      'orderValue': 'Rp 8.750.000'
     },
     {
       'id': 'amie_cake',
@@ -66,7 +75,9 @@ class _SalesDashboardState extends State<SalesDashboard> {
       'lng': 106.8300,
       'color': Colors.blue,
       'phone': '+62-21-4567890',
-      'contact': 'Rina Marlina'
+      'contact': 'Rina Marlina',
+      'lastVisit': 'Hari ini',
+      'orderValue': 'Rp 5.200.000'
     },
     {
       'id': 'kavling_dpr',
@@ -77,7 +88,9 @@ class _SalesDashboardState extends State<SalesDashboard> {
       'lng': 106.8400,
       'color': Colors.green,
       'phone': '+62-21-5678901',
-      'contact': 'Joko Widodo'
+      'contact': 'Joko Widodo',
+      'lastVisit': '3 hari lalu',
+      'orderValue': 'Rp 12.100.000'
     },
     {
       'id': 'keke_travel',
@@ -88,7 +101,9 @@ class _SalesDashboardState extends State<SalesDashboard> {
       'lng': 106.8250,
       'color': Colors.orange,
       'phone': '+62-21-6789012',
-      'contact': 'Keke Prasetyo'
+      'contact': 'Keke Prasetyo',
+      'lastVisit': '1 minggu lalu',
+      'orderValue': 'Rp 6.800.000'
     },
     {
       'id': 'global_store',
@@ -99,18 +114,22 @@ class _SalesDashboardState extends State<SalesDashboard> {
       'lng': 106.8550,
       'color': Colors.blue,
       'phone': '+62-21-7890123',
-      'contact': 'Global Manager'
+      'contact': 'Global Manager',
+      'lastVisit': 'Hari ini',
+      'orderValue': 'Rp 18.600.000'
     },
     {
       'id': 'iris_jaya',
       'name': 'Toko Iris Jaya',
-      'address': 'Minimartket Area',
+      'address': 'Minimarket Area',
       'status': 'active',
       'lat': -6.1950,
       'lng': 106.8700,
       'color': Colors.green,
       'phone': '+62-21-8901234',
-      'contact': 'Iris Jaya'
+      'contact': 'Iris Jaya',
+      'lastVisit': '2 hari lalu',
+      'orderValue': 'Rp 9.400.000'
     },
   ];
 
@@ -138,6 +157,12 @@ class _SalesDashboardState extends State<SalesDashboard> {
         _currentPosition = position;
       });
       _setupMarkers();
+      
+      // Move map to current location
+      _mapController.move(
+        LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+        13.0,
+      );
     } catch (e) {
       print('Error getting location: $e');
       _setupMarkers();
@@ -145,18 +170,26 @@ class _SalesDashboardState extends State<SalesDashboard> {
   }
 
   void _setupMarkers() {
-    final markers = <Marker>{};
+    final markers = <Marker>[];
     
     // Add current location marker if available
     if (_currentPosition != null) {
       markers.add(
         Marker(
-          markerId: const MarkerId('current_location'),
-          position: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          infoWindow: const InfoWindow(
-            title: 'Lokasi Saya',
-            snippet: 'Posisi saat ini',
+          point: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          width: 60,
+          height: 60,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blue.withOpacity(0.3),
+              border: Border.all(color: Colors.blue, width: 3),
+            ),
+            child: const Icon(
+              Icons.my_location,
+              color: Colors.blue,
+              size: 30,
+            ),
           ),
         ),
       );
@@ -168,16 +201,31 @@ class _SalesDashboardState extends State<SalesDashboard> {
           point['status'] == _selectedFilter.toLowerCase()) {
         markers.add(
           Marker(
-            markerId: MarkerId(point['id']),
-            position: LatLng(point['lat'], point['lng']),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              _getMarkerColor(point['status']),
+            point: LatLng(point['lat'], point['lng']),
+            width: 50,
+            height: 50,
+            child: GestureDetector(
+              onTap: () => _showLocationDetail(point),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: point['color'],
+                  border: Border.all(color: Colors.white, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.location_on,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
             ),
-            infoWindow: InfoWindow(
-              title: point['name'],
-              snippet: point['address'],
-            ),
-            onTap: () => _showLocationDetail(point),
           ),
         );
       }
@@ -189,39 +237,30 @@ class _SalesDashboardState extends State<SalesDashboard> {
     });
   }
 
-  double _getMarkerColor(String status) {
-    switch (status) {
-      case 'active':
-        return BitmapDescriptor.hueGreen;
-      case 'pending':
-        return BitmapDescriptor.hueOrange;
-      case 'delivered':
-        return BitmapDescriptor.hueBlue;
-      default:
-        return BitmapDescriptor.hueRed;
-    }
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-    
-    // Move camera to Jakarta center or current location
-    final target = _currentPosition != null
-        ? LatLng(_currentPosition!.latitude, _currentPosition!.longitude)
-        : const LatLng(-6.2088, 106.8456); // Jakarta center
-        
-    _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: target, zoom: 12.0),
-      ),
-    );
-  }
-
   void _filterMarkers(String filter) {
     setState(() {
       _selectedFilter = filter;
     });
     _setupMarkers();
+  }
+
+  void _changeMapStyle(String style) {
+    setState(() {
+      _mapStyle = style;
+    });
+  }
+
+  String _getTileLayerUrl() {
+    switch (_mapStyle) {
+      case 'Satellite':
+        return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+      case 'Terrain':
+        return 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+      case 'Dark':
+        return 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png';
+      default:
+        return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+    }
   }
 
   @override
@@ -237,6 +276,16 @@ class _SalesDashboardState extends State<SalesDashboard> {
             onPressed: _getCurrentLocation,
             tooltip: 'Lokasi Saya',
           ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.layers),
+            onSelected: _changeMapStyle,
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'OpenStreetMap', child: Text('Peta Standar')),
+              const PopupMenuItem(value: 'Satellite', child: Text('Satelit')),
+              const PopupMenuItem(value: 'Terrain', child: Text('Terrain')),
+              const PopupMenuItem(value: 'Dark', child: Text('Mode Gelap')),
+            ],
+          ),
           DashboardUtils.buildUserInfoBadge(widget.user),
           DashboardUtils.buildPopupMenu(
             context, 
@@ -248,11 +297,26 @@ class _SalesDashboardState extends State<SalesDashboard> {
       body: _isLoading 
           ? const Center(child: CircularProgressIndicator())
           : _buildMapPage(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showDistributionSummary(),
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.list, color: Colors.white),
-        tooltip: 'Daftar Distribusi',
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: "summary",
+            onPressed: () => _showDistributionSummary(),
+            backgroundColor: Colors.green,
+            mini: true,
+            child: const Icon(Icons.list, color: Colors.white),
+            tooltip: 'Ringkasan',
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton(
+            heroTag: "route",
+            onPressed: () => _showOptimalRoute(),
+            backgroundColor: Colors.blue,
+            child: const Icon(Icons.route, color: Colors.white),
+            tooltip: 'Rute Optimal',
+          ),
+        ],
       ),
     );
   }
@@ -273,7 +337,7 @@ class _SalesDashboardState extends State<SalesDashboard> {
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.directions),
-                    onPressed: () => _showDirectionsDialog(),
+                    onPressed: () => _showOptimalRoute(),
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -302,25 +366,41 @@ class _SalesDashboardState extends State<SalesDashboard> {
           ),
         ),
         
-        // Google Map
+        // OpenStreetMap with flutter_map
         Expanded(
-          child: GoogleMap(
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(-6.2088, 106.8456), // Jakarta
-              zoom: 12.0,
+          child: FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: const LatLng(-6.2088, 106.8456), // Jakarta
+              initialZoom: 12.0,
+              minZoom: 5.0,
+              maxZoom: 18.0,
+              onTap: (tapPosition, point) {
+                // Handle map tap if needed
+              },
             ),
-            markers: _markers,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: true,
-            mapToolbarEnabled: true,
-            compassEnabled: true,
-            trafficEnabled: true, // Show traffic condition
-            mapType: MapType.normal,
-            onTap: (LatLng position) {
-              // Handle map tap if needed
-            },
+            children: [
+              TileLayer(
+                urlTemplate: _getTileLayerUrl(),
+                userAgentPackageName: 'com.example.sales_dashboard',
+                maxZoom: 18,
+              ),
+              MarkerLayer(
+                markers: _markers,
+              ),
+              if (_currentPosition != null)
+                CircleLayer(
+                  circles: [
+                    CircleMarker(
+                      point: LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+                      radius: 100,
+                      color: Colors.blue.withOpacity(0.1),
+                      borderColor: Colors.blue.withOpacity(0.3),
+                      borderStrokeWidth: 2,
+                    ),
+                  ],
+                ),
+            ],
           ),
         ),
       ],
@@ -355,7 +435,6 @@ class _SalesDashboardState extends State<SalesDashboard> {
   void _searchLocation(String query) {
     if (query.isEmpty) return;
     
-    // Find matching distribution point
     final point = _distributionPoints.firstWhere(
       (p) => p['name'].toLowerCase().contains(query.toLowerCase()) ||
              p['address'].toLowerCase().contains(query.toLowerCase()),
@@ -363,14 +442,7 @@ class _SalesDashboardState extends State<SalesDashboard> {
     );
     
     if (point.isNotEmpty) {
-      _mapController?.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: LatLng(point['lat'], point['lng']),
-            zoom: 16.0,
-          ),
-        ),
-      );
+      _mapController.move(LatLng(point['lat'], point['lng']), 16.0);
       _showLocationDetail(point);
     }
   }
@@ -394,8 +466,8 @@ class _SalesDashboardState extends State<SalesDashboard> {
             Row(
               children: [
                 Container(
-                  width: 50,
-                  height: 50,
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
                     color: point['color'],
                     shape: BoxShape.circle,
@@ -403,10 +475,10 @@ class _SalesDashboardState extends State<SalesDashboard> {
                   child: const Icon(
                     Icons.location_on,
                     color: Colors.white,
-                    size: 24,
+                    size: 30,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -438,20 +510,43 @@ class _SalesDashboardState extends State<SalesDashboard> {
               ],
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: point['color'].withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Status: ${point['status'].toUpperCase()}',
-                style: TextStyle(
-                  color: point['color'],
-                  fontWeight: FontWeight.bold,
+            
+            // Status dan info tambahan
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: point['color'].withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Status: ${point['status'].toUpperCase()}',
+                    style: TextStyle(
+                      color: point['color'],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
+                const Spacer(),
+                Text(
+                  'Kunjungan: ${point['lastVisit']}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 8),
+            Text(
+              'Nilai Order: ${point['orderValue']}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
               ),
             ),
+            
             const SizedBox(height: 16),
             Row(
               children: [
@@ -459,7 +554,7 @@ class _SalesDashboardState extends State<SalesDashboard> {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
-                      _openGoogleMaps(point['lat'], point['lng'], point['name']);
+                      _openMapsNavigation(point['lat'], point['lng'], point['name']);
                     },
                     icon: const Icon(Icons.directions, size: 18),
                     label: const Text('Navigasi'),
@@ -508,37 +603,72 @@ class _SalesDashboardState extends State<SalesDashboard> {
     );
   }
 
-  void _openGoogleMaps(double lat, double lng, String name) {
-    // In a real app, you would use url_launcher to open Google Maps
-    DashboardUtils.showSnackBar(context, 'Membuka Google Maps ke $name');
+  Future<void> _openMapsNavigation(double lat, double lng, String name) async {
+    final url = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&destination_place_id=$name';
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      DashboardUtils.showSnackBar(context, 'Tidak dapat membuka aplikasi maps');
+    }
   }
 
-  void _makePhoneCall(String phone) {
-    // In a real app, you would use url_launcher to make phone call
-    DashboardUtils.showSnackBar(context, 'Menelepon $phone');
+  Future<void> _makePhoneCall(String phone) async {
+    final url = 'tel:$phone';
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    } else {
+      DashboardUtils.showSnackBar(context, 'Tidak dapat melakukan panggilan');
+    }
   }
 
   void _markAsVisited(Map<String, dynamic> point) {
     setState(() {
       point['status'] = 'delivered';
       point['color'] = Colors.blue;
+      point['lastVisit'] = 'Hari ini';
     });
     _setupMarkers();
     DashboardUtils.showSnackBar(context, '${point['name']} ditandai sudah dikunjungi');
   }
 
-  void _showDirectionsDialog() {
-    showDialog(
+  void _showOptimalRoute() {
+    final activePoints = _distributionPoints.where((p) => p['status'] == 'active' || p['status'] == 'pending').toList();
+    
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Rute Optimal'),
-        content: const Text('Menghitung rute optimal ke semua lokasi...'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Rute Optimal Hari Ini',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '${activePoints.length} lokasi yang perlu dikunjungi',
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            ...activePoints.take(3).map((point) => ListTile(
+              leading: CircleAvatar(
+                backgroundColor: point['color'],
+                child: const Icon(Icons.location_on, color: Colors.white, size: 16),
+              ),
+              title: Text(point['name'], style: const TextStyle(fontSize: 14)),
+              subtitle: Text('${point['address']} • ${point['orderValue']}', style: const TextStyle(fontSize: 12)),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 12),
+              onTap: () {
+                Navigator.pop(context);
+                _mapController.move(LatLng(point['lat'], point['lng']), 16.0);
+                _showLocationDetail(point);
+              },
+            )),
+            if (activePoints.length > 3)
+              Text('... dan ${activePoints.length - 3} lokasi lainnya'),
+          ],
+        ),
       ),
     );
   }
@@ -547,6 +677,10 @@ class _SalesDashboardState extends State<SalesDashboard> {
     final activeCount = _distributionPoints.where((p) => p['status'] == 'active').length;
     final pendingCount = _distributionPoints.where((p) => p['status'] == 'pending').length;
     final deliveredCount = _distributionPoints.where((p) => p['status'] == 'delivered').length;
+    
+    final totalValue = _distributionPoints
+        .map((p) => int.parse(p['orderValue'].replaceAll(RegExp(r'[^0-9]'), '')))
+        .reduce((a, b) => a + b);
 
     showModalBottomSheet(
       context: context,
@@ -567,6 +701,28 @@ class _SalesDashboardState extends State<SalesDashboard> {
                 _buildSummaryCard('Pending', pendingCount, Colors.orange),
                 _buildSummaryCard('Selesai', deliveredCount, Colors.blue),
               ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Total Nilai Order:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    'Rp ${_formatCurrency(totalValue)}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -601,6 +757,13 @@ class _SalesDashboardState extends State<SalesDashboard> {
           ),
         ],
       ),
+    );
+  }
+
+  String _formatCurrency(int amount) {
+    return amount.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
     );
   }
 }
