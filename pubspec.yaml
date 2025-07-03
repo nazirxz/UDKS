@@ -40,6 +40,7 @@ dependencies:
   geolocator: ^10.1.0         # GPS Location - GRATIS
   permission_handler: ^11.1.0  # Permissions - GRATIS
   url_launcher: ^6.2.2        # Link/Telepon - GRATIS
+  provider: ^6.0.5          # State Management - GRATIS
 
 dev_dependencies:
   flutter_test:
